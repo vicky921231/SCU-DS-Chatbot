@@ -6,7 +6,7 @@ from rag import get_relevant_context
 load_dotenv()
 HF_TOKEN = os.getenv("HUGGINGFACE_ACCESS_TOKEN")
 
-MODEL_NAME = "meta-llama/Llama-3.1-8B-Instruct"
+MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.3"
 client = InferenceClient(model=MODEL_NAME, token=HF_TOKEN)
 
 def ask_question(query: str) -> str:

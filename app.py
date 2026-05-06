@@ -14,7 +14,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("💡 東吳資科智慧校園助手")
-st.caption("🚀 Powered by Llama 3.1 & RAG Architecture")
+st.caption("🚀 Powered by Mistral 7B & RAG Architecture")
 
 # 2. 初始化對話紀錄
 if "messages" not in st.session_state:
@@ -29,7 +29,7 @@ with st.sidebar:
     with st.expander("📡 系統狀態", expanded=True):
         st.success("環境連線：正常 (HuggingFace)")
         st.success("知識庫：ChromaDB 向量庫已掛載")
-        st.info("目前大腦：Llama-3.1-8B（HF 雲端推論）")
+        st.info("目前大腦：Mistral-7B（HF 雲端推論）")
 
     # 優化 B：快捷問題提示
     st.markdown("### 🔍 常用問題快捷鍵")
