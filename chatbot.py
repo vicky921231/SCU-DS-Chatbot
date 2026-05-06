@@ -1,18 +1,18 @@
 import os
 from dotenv import load_dotenv
-from huggingface_hub import InferenceClient
+from groq import Groq
 from rag import get_relevant_context
 
 load_dotenv()
 
-MODEL_NAME = "HuggingFaceH4/zephyr-7b-beta"
+MODEL_NAME = "llama-3.1-8b-instant"
 
-def _get_token():
+def _get_key():
     try:
         import streamlit as st
-        return st.secrets.get("HUGGINGFACE_ACCESS_TOKEN") or os.getenv("HUGGINGFACE_ACCESS_TOKEN")
+        return st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
     except Exception:
-        return os.getenv("HUGGINGFACE_ACCESS_TOKEN")
+        return os.getenv("GROQ_API_KEY")
 
 def ask_question(query: str) -> str:
     context = get_relevant_context(query)
@@ -25,8 +25,9 @@ def ask_question(query: str) -> str:
 
     user_prompt = f"【參考資料】\n{context}\n【使用者問題】\n{query}"
 
-    client = InferenceClient(model=MODEL_NAME, token=_get_token())
-    response = client.chat_completion(
+    client = Groq(api_key=_get_key())
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": user_prompt},

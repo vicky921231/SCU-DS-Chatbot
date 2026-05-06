@@ -1,6 +1,6 @@
 streamlit
 pandas
-huggingface-hub
+groq
 python-dotenv
 sentence-transformers
 numpy
