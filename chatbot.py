@@ -4,7 +4,12 @@ from huggingface_hub import InferenceClient
 from rag import get_relevant_context
 
 load_dotenv()
-HF_TOKEN = os.getenv("HUGGINGFACE_ACCESS_TOKEN")
+
+try:
+    import streamlit as st
+    HF_TOKEN = st.secrets.get("HUGGINGFACE_ACCESS_TOKEN") or os.getenv("HUGGINGFACE_ACCESS_TOKEN")
+except Exception:
+    HF_TOKEN = os.getenv("HUGGINGFACE_ACCESS_TOKEN")
 
 MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.3"
 client = InferenceClient(model=MODEL_NAME, token=HF_TOKEN)
