@@ -25,8 +25,12 @@ def ask_question(query: str) -> str:
 
     user_prompt = f"【參考資料】\n{context}\n【使用者問題】\n{query}"
 
-    prompt = f"<|system|>\n{system_prompt}</s>\n<|user|>\n{user_prompt}</s>\n<|assistant|>\n"
-
     client = InferenceClient(model=MODEL_NAME, token=_get_token())
-    response = client.text_generation(prompt, max_new_tokens=512, do_sample=False)
-    return response.strip()
+    response = client.chat_completion(
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user",   "content": user_prompt},
+        ],
+        max_tokens=512,
+    )
+    return response.choices[0].message.content.strip()
