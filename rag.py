@@ -1,9 +1,7 @@
+import numpy as np
 import pandas as pd
-from langchain_core.documents import Document
-from langchain_community.vectorstores import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
+from sentence_transformers import SentenceTransformer
 
-# 設定資料檔案路徑 (請確保 CSV 檔與此程式碼在同一個資料夾)
 FILE_PATH = "東吳資科常見問題彙整.csv"
 
 def build_vector_db():
@@ -15,37 +13,31 @@ def build_vector_db():
         df = df.dropna().reset_index(drop=True)
         print(f"成功讀取 {len(df)} 筆有效的 QA 資料")
     except Exception as e:
-        print(f"讀取 CSV 發生錯誤，請檢查檔案路徑：{e}")
-        return None
+        print(f"讀取 CSV 發生錯誤：{e}")
+        return None, None, None
 
-    documents = []
-    for index, row in df.iterrows():
-        text_content = f"問題：{row['query']}\n答案：{row['answer']}"
-        metadata = {"query": str(row['query']), "answer": str(row['answer'])}
-        doc = Document(page_content=text_content, metadata=metadata)
-        documents.append(doc)
+    texts = [f"問題：{row['query']}\n答案：{row['answer']}" for _, row in df.iterrows()]
 
     print("載入中文 Embedding 模型中")
-    embeddings = HuggingFaceEmbeddings(model_name="shibing624/text2vec-base-chinese")
+    model = SentenceTransformer("shibing624/text2vec-base-chinese")
 
-    print("建立 Chroma 向量資料庫中")
-    vector_db = Chroma.from_documents(
-        documents=documents,
-        embedding=embeddings
-    )
-    print("向量資料庫建置完成\n")
-    return vector_db
+    print("建立向量索引中")
+    embeddings = model.encode(texts, normalize_embeddings=True)
+    print("向量索引建置完成\n")
+    return model, embeddings, df
 
-# 在模組被 import 時，初始化一次資料庫，避免每次問問題都重建
-vector_db = build_vector_db()
+model, embeddings, df = build_vector_db()
 
 def get_relevant_context(query: str, k: int = 3) -> str:
-
-    if vector_db is None:
+    if model is None:
         return "無法檢索資料，資料庫尚未建立。"
-        
-    docs = vector_db.similarity_search(query, k=k)
+
+    query_vec = model.encode([query], normalize_embeddings=True)
+    scores = (embeddings @ query_vec.T).flatten()
+    top_k = np.argsort(scores)[::-1][:k]
+
     context = ""
-    for i, doc in enumerate(docs):
-        context += f"[資料{i+1}]\n問：{doc.metadata['query']}\n答：{doc.metadata['answer']}\n\n"
+    for i, idx in enumerate(top_k):
+        row = df.iloc[idx]
+        context += f"[資料{i+1}]\n問：{row['query']}\n答：{row['answer']}\n\n"
     return context

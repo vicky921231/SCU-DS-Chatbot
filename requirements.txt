@@ -1,9 +1,8 @@
 streamlit
 langchain-core
-langchain-community
 langchain-huggingface
-chromadb
 pandas
 huggingface-hub
 python-dotenv
 sentence-transformers
+numpy
