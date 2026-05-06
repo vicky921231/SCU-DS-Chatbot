@@ -14,7 +14,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("💡 東吳資科智慧校園助手")
-st.caption("🚀 Powered by Mistral 7B & RAG Architecture")
+st.caption("🚀 Powered by Zephyr 7B & RAG Architecture")
 
 # 2. 初始化對話紀錄
 if "messages" not in st.session_state:
@@ -28,8 +28,8 @@ with st.sidebar:
     # 優化 A：系統診斷看板
     with st.expander("📡 系統狀態", expanded=True):
         st.success("環境連線：正常 (HuggingFace)")
-        st.success("知識庫：ChromaDB 向量庫已掛載")
-        st.info("目前大腦：Mistral-7B（HF 雲端推論）")
+        st.success("知識庫：Numpy 向量庫已掛載")
+        st.info("目前大腦：Zephyr-7B（HF 雲端推論）")
 
     # 優化 B：快捷問題提示
     st.markdown("### 🔍 常用問題快捷鍵")

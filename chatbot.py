@@ -5,14 +5,14 @@ from rag import get_relevant_context
 
 load_dotenv()
 
-try:
-    import streamlit as st
-    HF_TOKEN = st.secrets.get("HUGGINGFACE_ACCESS_TOKEN") or os.getenv("HUGGINGFACE_ACCESS_TOKEN")
-except Exception:
-    HF_TOKEN = os.getenv("HUGGINGFACE_ACCESS_TOKEN")
+MODEL_NAME = "HuggingFaceH4/zephyr-7b-beta"
 
-MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.3"
-client = InferenceClient(model=MODEL_NAME, token=HF_TOKEN)
+def _get_token():
+    try:
+        import streamlit as st
+        return st.secrets.get("HUGGINGFACE_ACCESS_TOKEN") or os.getenv("HUGGINGFACE_ACCESS_TOKEN")
+    except Exception:
+        return os.getenv("HUGGINGFACE_ACCESS_TOKEN")
 
 def ask_question(query: str) -> str:
     context = get_relevant_context(query)
@@ -25,7 +25,8 @@ def ask_question(query: str) -> str:
 
     user_prompt = f"【參考資料】\n{context}\n【使用者問題】\n{query}"
 
-    prompt = f"<s>[INST] {system_prompt}\n\n{user_prompt} [/INST]"
+    prompt = f"<|system|>\n{system_prompt}</s>\n<|user|>\n{user_prompt}</s>\n<|assistant|>\n"
 
+    client = InferenceClient(model=MODEL_NAME, token=_get_token())
     response = client.text_generation(prompt, max_new_tokens=512, do_sample=False)
     return response.strip()
