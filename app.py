@@ -58,10 +58,11 @@ with st.sidebar:
             st.warning("目前沒有對話紀錄可匯出")
 
 # 4. 處理快捷鍵輸入邏輯
+chat_input = st.chat_input("請問關於選課、學分、獎學金的問題...")
 if "temp_prompt" in st.session_state:
     prompt = st.session_state.pop("temp_prompt")
 else:
-    prompt = st.chat_input("請問關於選課、學分、獎學金的問題...")
+    prompt = chat_input
 
 # 5. 顯示歷史與處理新訊息
 for message in st.session_state.messages:
