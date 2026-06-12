@@ -16,19 +16,20 @@ def build_vector_db():
         print(f"讀取 CSV 發生錯誤：{e}")
         return None, None, None
 
-    texts = [f"問題：{row['query']}\n答案：{row['answer']}" for _, row in df.iterrows()]
+    # 只對問題欄位做 embedding，讓使用者問題能精準比對資料庫問題
+    questions = [str(row['query']) for _, row in df.iterrows()]
 
     print("載入中文 Embedding 模型中")
     model = SentenceTransformer("shibing624/text2vec-base-chinese")
 
     print("建立向量索引中")
-    embeddings = model.encode(texts, normalize_embeddings=True)
+    embeddings = model.encode(questions, normalize_embeddings=True)
     print("向量索引建置完成\n")
     return model, embeddings, df
 
 model, embeddings, df = build_vector_db()
 
-def get_relevant_context(query: str, k: int = 3) -> str:
+def get_relevant_context(query: str, k: int = 5) -> str:
     if model is None:
         return "無法檢索資料，資料庫尚未建立。"
 
