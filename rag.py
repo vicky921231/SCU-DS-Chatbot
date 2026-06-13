@@ -9,7 +9,8 @@ SOURCES = [
         "file": "東吳資科常見問題彙整.csv",
         "embed_col": "query",
         "answer_col": "answer",
-        "schema": "qa",          # 兩欄 qa 格式
+        "schema": "qa",
+        "no_header": True,       # 此檔無標題列，第一欄=query，第二欄=answer
     },
     {
         "file": "東吳資科_5000筆高品質學生問法資料集.csv",
@@ -28,7 +29,12 @@ SOURCES = [
 def _load_source(src: dict):
     """讀取單一來源，回傳 (embed_texts, answer_texts) 兩個 list。"""
     try:
-        df = pd.read_csv(src["file"]).dropna(subset=[src["embed_col"], src["answer_col"]])
+        if src.get("no_header"):
+            df = pd.read_csv(src["file"], header=None)
+            df.columns = [src["embed_col"], src["answer_col"]] + list(range(len(df.columns) - 2))
+        else:
+            df = pd.read_csv(src["file"])
+        df = df.dropna(subset=[src["embed_col"], src["answer_col"]])
     except Exception as e:
         print(f"[警告] 讀取 {src['file']} 失敗：{e}")
         return [], []
