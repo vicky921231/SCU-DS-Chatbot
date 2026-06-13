@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import streamlit as st
 from sentence_transformers import SentenceTransformer
 
 # ── 資料來源設定 ────────────────────────────────────────────────
@@ -43,6 +44,7 @@ def _load_source(src: dict):
     print(f"  ✓ {src['file']}：{len(embed_texts)} 筆")
     return embed_texts, answer_texts
 
+@st.cache_resource
 def build_vector_db():
     print("正在載入所有知識來源...")
     all_embed, all_answer = [], []

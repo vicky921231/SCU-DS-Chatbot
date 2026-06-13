@@ -14,6 +14,8 @@ def _get_key():
     except Exception:
         return os.getenv("GROQ_API_KEY")
 
+client = Groq(api_key=_get_key())
+
 def ask_question(query: str) -> str:
     context = get_relevant_context(query)
 
@@ -28,7 +30,6 @@ def ask_question(query: str) -> str:
 
     user_prompt = f"【參考資料】\n{context}\n【使用者問題】\n{query}"
 
-    client = Groq(api_key=_get_key())
     response = client.chat.completions.create(
         model=MODEL_NAME,
         messages=[
