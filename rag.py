@@ -2,32 +2,62 @@ import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 
-FILE_PATH = "東吳資科常見問題彙整.csv"
+# ── 資料來源設定 ────────────────────────────────────────────────
+# 每個來源指定：檔名、要 embed 的欄位、要回傳的欄位（None = 同 embed 欄）
+SOURCES = [
+    {
+        "file": "東吳資科常見問題彙整.csv",
+        "embed_col": "query",
+        "answer_col": "answer",
+        "schema": "qa",          # 兩欄 qa 格式
+    },
+    {
+        "file": "東吳資科_5000筆高品質學生問法資料集.csv",
+        "embed_col": "學生問法",
+        "answer_col": "答案",
+        "schema": "qa",
+    },
+    {
+        "file": "東吳資科_新增知識資料集_1000plus.csv",
+        "embed_col": "知識內容",
+        "answer_col": "知識內容",
+        "schema": "knowledge",   # 純知識段落
+    },
+]
+
+def _load_source(src: dict):
+    """讀取單一來源，回傳 (embed_texts, answer_texts) 兩個 list。"""
+    try:
+        df = pd.read_csv(src["file"]).dropna(subset=[src["embed_col"], src["answer_col"]])
+    except Exception as e:
+        print(f"[警告] 讀取 {src['file']} 失敗：{e}")
+        return [], []
+    embed_texts  = df[src["embed_col"]].astype(str).tolist()
+    answer_texts = df[src["answer_col"]].astype(str).tolist()
+    print(f"  ✓ {src['file']}：{len(embed_texts)} 筆")
+    return embed_texts, answer_texts
 
 def build_vector_db():
-    print(f"正在讀取檔案：{FILE_PATH}")
-    try:
-        df = pd.read_csv(FILE_PATH)
-        df = df.iloc[:, :2]
-        df.columns = ['query', 'answer']
-        df = df.dropna().reset_index(drop=True)
-        print(f"成功讀取 {len(df)} 筆有效的 QA 資料")
-    except Exception as e:
-        print(f"讀取 CSV 發生錯誤：{e}")
+    print("正在載入所有知識來源...")
+    all_embed, all_answer = [], []
+    for src in SOURCES:
+        e, a = _load_source(src)
+        all_embed  += e
+        all_answer += a
+
+    if not all_embed:
+        print("無可用資料，資料庫建置失敗。")
         return None, None, None
 
-    # 只對問題欄位做 embedding，讓使用者問題能精準比對資料庫問題
-    questions = [str(row['query']) for _, row in df.iterrows()]
-
-    print("載入中文 Embedding 模型中")
+    print(f"共載入 {len(all_embed)} 筆資料，載入 Embedding 模型中...")
     model = SentenceTransformer("shibing624/text2vec-base-chinese")
 
-    print("建立向量索引中")
-    embeddings = model.encode(questions, normalize_embeddings=True)
-    print("向量索引建置完成\n")
-    return model, embeddings, df
+    print("建立向量索引中（首次啟動約需 1-2 分鐘）...")
+    embeddings = model.encode(all_embed, normalize_embeddings=True, show_progress_bar=False)
+    print("向量索引建置完成。\n")
+    return model, embeddings, all_answer
 
-model, embeddings, df = build_vector_db()
+model, embeddings, all_answers = build_vector_db()
 
 def get_relevant_context(query: str, k: int = 5) -> str:
     if model is None:
@@ -39,6 +69,5 @@ def get_relevant_context(query: str, k: int = 5) -> str:
 
     context = ""
     for i, idx in enumerate(top_k):
-        row = df.iloc[idx]
-        context += f"[資料{i+1}]\n問：{row['query']}\n答：{row['answer']}\n\n"
+        context += f"[資料{i+1}]\n{all_answers[idx]}\n\n"
     return context
