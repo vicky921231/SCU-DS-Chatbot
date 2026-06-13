@@ -53,8 +53,16 @@ with st.sidebar:
         
     if st.button("📋 匯出本次對話", use_container_width=True):
         if st.session_state.messages:
-            chat_text = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
-            st.download_button("點此下載 .txt 檔", chat_text, file_name="chat_history.txt")
+            import pandas as pd, io
+            df_chat = pd.DataFrame([
+                {"角色": "使用者" if m["role"] == "user" else "助手", "內容": m["content"]}
+                for m in st.session_state.messages
+            ])
+            buf = io.BytesIO()
+            df_chat.to_excel(buf, index=False, engine="openpyxl")
+            st.download_button("點此下載 .xlsx 檔", buf.getvalue(),
+                               file_name="chat_history.xlsx",
+                               mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         else:
             st.warning("目前沒有對話紀錄可匯出")
 
