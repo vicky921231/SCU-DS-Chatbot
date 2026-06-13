@@ -20,7 +20,7 @@ SOURCES = [
         "schema": "qa",
     },
     {
-        "file": "東吳資科_新增知識資料集_1000plus.csv",
+        "file": "Knowledge_Base_Final_v5.csv",
         "embed_template": "{類別} {子類別} {關鍵標籤}",  # 短關鍵字組合，比長段落更易命中
         "answer_col": "知識內容",
         "schema": "knowledge",
