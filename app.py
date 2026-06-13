@@ -38,7 +38,7 @@ with st.sidebar:
         "畢業門檻除了學分還有其他規定嗎？",
         "每學期學雜費大約多少？",
         "如何申請獎學金？",
-        "雙主修成績門檻",
+        "申請雙主修的門檻",
     ]
     for q in quick_queries:
         if st.button(q, use_container_width=True):
