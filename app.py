@@ -36,7 +36,7 @@ with st.sidebar:
     quick_queries = [
         "體育課算學分嗎？",
         "畢業門檻除了學分還有其他規定嗎？",
-        "資科系的學分費是多少？",
+        "資科系的學分費大約多少？",
         "如何申請獎學金？"
     ]
     for q in quick_queries:
