@@ -75,15 +75,42 @@ def build_vector_db():
 
 model, embeddings, all_answers = build_vector_db()
 
+_ANS_FU = (
+    "資科系輔系申請條件（114學年度）：前一學期總成績平均75分以上"
+    "（前學期無成績者不得申請）。申請時需繳：歷年成績單、個人基本資料"
+    "（含自傳與修課規劃）、其他有利審查資料。達成績標準後審酌錄取。"
+)
+_ANS_DUAL = (
+    "資科系雙主修申請條件（114學年度）：在學每一學期總成績平均80分以上"
+    "（允許前學期無成績），審酌錄取。申請時需繳：歷年成績單、個人基本資料"
+    "（含自傳與修課規劃）、其他有利審查資料。注意事項："
+    "（1）抵免後必修科目不足40學分需補修本系指定科目；"
+    "（2）大四「專題實作」須依本系規定修讀，詳見系官網課程資訊之專題實作專區。"
+)
+
 def get_relevant_context(query: str, k: int = 5) -> str:
     if model is None:
         return "無法檢索資料，資料庫尚未建立。"
 
+    pinned = []
+    has_fu   = "輔系" in query
+    has_dual = "雙主修" in query
+
+    if has_fu and not has_dual:
+        pinned.append(_ANS_FU)
+    elif has_dual and not has_fu:
+        pinned.append(_ANS_DUAL)
+    elif has_fu and has_dual:
+        pinned.extend([_ANS_FU, _ANS_DUAL])
+
+    remaining = max(0, k - len(pinned))
     query_vec = model.encode([query], normalize_embeddings=True)
     scores = (embeddings @ query_vec.T).flatten()
-    top_k = np.argsort(scores)[::-1][:k]
+    top_k = np.argsort(scores)[::-1][:remaining]
 
     context = ""
-    for i, idx in enumerate(top_k):
-        context += f"[資料{i+1}]\n{all_answers[idx]}\n\n"
+    for i, ans in enumerate(pinned):
+        context += f"[資料{i+1}]\n{ans}\n\n"
+    for j, idx in enumerate(top_k):
+        context += f"[資料{len(pinned)+j+1}]\n{all_answers[idx]}\n\n"
     return context
