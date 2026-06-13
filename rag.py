@@ -21,9 +21,9 @@ SOURCES = [
     },
     {
         "file": "東吳資科_新增知識資料集_1000plus.csv",
-        "embed_col": "知識內容",
+        "embed_template": "{類別} {子類別} {關鍵標籤}",  # 短關鍵字組合，比長段落更易命中
         "answer_col": "知識內容",
-        "schema": "knowledge",   # 純知識段落
+        "schema": "knowledge",
     },
 ]
 
@@ -35,11 +35,19 @@ def _load_source(src: dict):
             df.columns = [src["embed_col"], src["answer_col"]] + list(range(len(df.columns) - 2))
         else:
             df = pd.read_csv(src["file"])
-        df = df.dropna(subset=[src["embed_col"], src["answer_col"]])
+        df = df.dropna(subset=[src["answer_col"]])
     except Exception as e:
         print(f"[警告] 讀取 {src['file']} 失敗：{e}")
         return [], []
-    embed_texts  = df[src["embed_col"]].astype(str).tolist()
+
+    if src.get("embed_template"):
+        embed_texts = df.apply(
+            lambda row: src["embed_template"].format(**{k: str(row[k]) for k in row.index}),
+            axis=1
+        ).tolist()
+    else:
+        embed_texts = df[src["embed_col"]].astype(str).tolist()
+
     answer_texts = df[src["answer_col"]].astype(str).tolist()
     print(f"  ✓ {src['file']}：{len(embed_texts)} 筆")
     return embed_texts, answer_texts
